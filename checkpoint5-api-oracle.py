@@ -1,100 +1,72 @@
-import time
+"""
+Checkpoint 5 - Parte A: Consumo de API Pública (requests)
+API: REST Countries (https://restcountries.com)
+"""
 
 import requests
 
-BASE_URL = "https://restcountries.com/v3.1"
+URL_BASE = "https://restcountries.com/v3.1/all"
 CAMPOS = "cca3,name,capital,region,subregion,population,area,currencies,languages"
-TIMEOUT_SEGUNDOS = 10
-MAX_TENTATIVAS = 3
 
 
-class ErroAPI(Exception):
-    """Erro de negócio levantado quando a API não pôde ser consumida."""
+def buscar_paises():
+    """Faz o GET na API e devolve o JSON bruto (lista vazia se der erro)."""
+    try:
+        resposta = requests.get(URL_BASE, params={"fields": CAMPOS}, timeout=10)
+    except requests.exceptions.Timeout:
+        print("Erro: a API demorou demais para responder (timeout).")
+        return []
+    except requests.exceptions.ConnectionError:
+        print("Erro: falha de conexão. Verifique a internet.")
+        return []
+    except requests.exceptions.RequestException as erro:
+        print(f"Erro inesperado na requisição: {erro}")
+        return []
 
-
-def _requisitar(url, params=None):
-    """Faz o GET com tratamento de erros de conexão e de status HTTP."""
-    for tentativa in range(1, MAX_TENTATIVAS + 1):
+    # Tratamento dos status HTTP
+    if resposta.status_code == 200:
         try:
-            resposta = requests.get(url, params=params, timeout=TIMEOUT_SEGUNDOS)
-        except requests.exceptions.Timeout:
-            print(f"[AVISO] Timeout (tentativa {tentativa}/{MAX_TENTATIVAS}).")
-        except requests.exceptions.ConnectionError:
-            print(f"[AVISO] Falha de conexão (tentativa {tentativa}/{MAX_TENTATIVAS}).")
-        except requests.exceptions.RequestException as erro:
-            raise ErroAPI(f"Erro inesperado na requisição: {erro}") from erro
-        else:
-            if resposta.status_code == 200:
-                return resposta
-            if resposta.status_code == 404:
-                raise ErroAPI("404 - Recurso não encontrado (verifique a URL ou a região).")
-            if resposta.status_code >= 500:
-                print(f"[AVISO] Erro {resposta.status_code} no servidor "
-                      f"(tentativa {tentativa}/{MAX_TENTATIVAS}).")
-            else:
-                raise ErroAPI(f"Erro HTTP {resposta.status_code}: {resposta.text[:200]}")
-
-        if tentativa < MAX_TENTATIVAS:
-            time.sleep(2 * tentativa)  # espera um pouco mais a cada tentativa
-
-    raise ErroAPI("API indisponível após várias tentativas.")
+            return resposta.json()
+        except ValueError:
+            print("Erro: a API retornou um JSON inválido.")
+            return []
+    elif resposta.status_code == 404:
+        print("Erro 404: recurso não encontrado.")
+    elif resposta.status_code == 500:
+        print("Erro 500: problema no servidor da API.")
+    else:
+        print(f"Erro HTTP {resposta.status_code}")
+    return []
 
 
-def _extrair_registro(item):
-    """Converte o JSON aninhado de um país em um dicionário simples (plano)."""
-    moedas = item.get("currencies") or {}
-    idiomas = item.get("languages") or {}
-    capitais = item.get("capital") or []
-
-    # Pega só a primeira moeda: {"BRL": {"name": "Brazilian real", ...}}
-    codigo_moeda = next(iter(moedas), None)
+def extrair_dados_pais(item):
+    """Pega um país do JSON e devolve um dicionário simples."""
+    capitais = item.get("capital", [])
+    moedas = item.get("currencies", {})
+    idiomas = item.get("languages", {})
 
     return {
         "codigo_pais": item.get("cca3"),
-        "nome_comum": (item.get("name") or {}).get("common"),
-        "nome_oficial": (item.get("name") or {}).get("official"),
+        "nome_comum": item["name"]["common"],
+        "nome_oficial": item["name"]["official"],
         "capital": capitais[0] if capitais else None,
         "regiao": item.get("region"),
         "subregiao": item.get("subregion"),
         "populacao": item.get("population"),
         "area_km2": item.get("area"),
-        "moeda": codigo_moeda,
-        "idioma": next(iter(idiomas.values()), None),
+        "moeda": list(moedas.keys())[0] if moedas else None,
+        "idioma": list(idiomas.values())[0] if idiomas else None,
     }
 
 
-def buscar_paises(regiao=None):
-    """
-    Busca países na API e devolve uma lista de dicionários simples.
-
-    regiao: opcional (africa, americas, asia, europe, oceania).
-    Levanta ErroAPI se algo der errado.
-    """
-    if regiao:
-        url = f"{BASE_URL}/region/{regiao}"
-    else:
-        url = f"{BASE_URL}/all"
-
-    resposta = _requisitar(url, params={"fields": CAMPOS})
-
-    try:
-        dados = resposta.json()
-    except ValueError as erro:
-        raise ErroAPI("A API retornou um JSON inválido.") from erro
-
-    if not isinstance(dados, list) or not dados:
-        raise ErroAPI("A API retornou uma resposta vazia ou em formato inesperado.")
-
-    registros = [_extrair_registro(item) for item in dados]
-    # Garante que todo registro tem a chave primária (cca3)
-    return [r for r in registros if r["codigo_pais"]]
+def obter_paises():
+    """Busca na API e devolve a lista de países já com os campos extraídos."""
+    dados = buscar_paises()
+    return [extrair_dados_pais(item) for item in dados]
 
 
 if __name__ == "__main__":
-    # Teste rápido: python api_client.py
-    try:
-        lista = buscar_paises("americas")
-        print(f"{len(lista)} países recebidos. Exemplo:")
-        print(lista[0])
-    except ErroAPI as e:
-        print(f"[ERRO] {e}")
+    paises = obter_paises()
+    print(f"{len(paises)} países recebidos.")
+    if paises:
+        print(paises[0])
