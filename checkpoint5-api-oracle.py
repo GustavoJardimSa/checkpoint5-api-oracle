@@ -108,10 +108,12 @@ def escolhaAleatória(lista):
 
 def main():
     lista = obter_personagens()
-    print(f"{len(lista)} personagens recebidos.")
+    print(f"\n{len(lista)} personagens recebidos.\n")
     if lista:
         while True:
+            print('==============================')
             print('Ações:\n1 - Escolha por indice\n2 - Escolha por intervalo\n3 - 5 escolhas aleatórias\n0 - sair')
+            print('==============================')
             try:
                 escolha = int(input('Escolha uma Ação: '))
             except ValueError:
