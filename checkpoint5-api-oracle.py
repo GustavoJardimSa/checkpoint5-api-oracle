@@ -33,6 +33,14 @@ def buscar_servants():
         print(f"Erro: formato inesperado da API: {str(dados)[:300]}")
     return []
 
+def definirCategoria(raridade):
+    if (raridade >= 1 and raridade <= 3):
+            categoriaRaridade = 'Comum'
+    elif (raridade == 4):
+            categoriaRaridade = 'Raro'
+    else:
+            categoriaRaridade = 'Ultra raro'
+    return categoriaRaridade
 
 def extrair_dados_personagem(item):
     """Pega um personagem do JSON e devolve um dicionário simples."""
@@ -47,6 +55,8 @@ def extrair_dados_personagem(item):
         "ataque_max": item.get("atkMax"),
         "vida_max": item.get("hpMax"),
         "atributo": item.get("attribute"),
+        "poder_total": (item.get("atkMax") + item.get("hpMax")),
+        "categoria_raridade": (definirCategoria(item.get("rarity")))
     }
 
 
@@ -56,9 +66,14 @@ def obter_personagens():
     return [extrair_dados_personagem(i) for i in buscar_servants()
             if isinstance(i, dict) and i.get("collectionNo")]
 
+def imprimirDados(item):
+    print(f'\nid: {item["id_personagem"]}\nNumero coleção: {item["numero_colecao"]}\nNome: {item["nome"]}\nClasse: {item["classe"]}\nRaridade: {item["raridade"]}\nCusto: {item["custo"]}\nNivel Maximo: {item["nivel_max"]}\nAtaque Maximo: {item["ataque_max"]}\nVida Maxima: {item["vida_max"]}\nAtributo: {item["atributo"]}\nPoder Total: {item["poder_total"]}\nCategoria por Raridade: {item["categoria_raridade"]}\n')
+
 
 if __name__ == "__main__":
     lista = obter_personagens()
     print(f"{len(lista)} personagens recebidos.")
     if lista:
-        print(lista[0])
+        for i in range(5):
+             item = lista[i]
+             imprimirDados(item)
