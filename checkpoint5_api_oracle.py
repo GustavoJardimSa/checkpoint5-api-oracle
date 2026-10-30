@@ -402,33 +402,33 @@ def atualizarNomePersonagem(conexao):
     if qtdPersonagensBD > 0:
         listaBD = listar_personagens(conexao)
         try:
-            print(f'Quantidade de Personagens personalizados: {qtdPersonagensBD}')
+            print(f'\nQuantidade de Personagens personalizados: {qtdPersonagensBD}')
             indice = int(input('Digite o indice do personagem que deseja mudar o nome: '))
         except ValueError:
             print('\nDigite apenas numeros inteiros\n')
         else:
             if (indice >= 1 and indice <= len(listaBD)):
                 personagem = listaBD[indice - 1]
-                print(f'personagem escolhido: {personagem["nome"]}')
+                print(f'\npersonagem escolhido: {personagem["nome"]}')
                 confirmacao = input('Confirme sua escolha (y/n): ').lower()
                 if (confirmacao == 'y'):
                     nome = input('Digite o novo nome: ')
                     atualizar_personagem(personagem["id_personagem"], nome, conexao)
                 elif (confirmacao == 'n'):
-                    print('Voltando...')
+                    print('\nVoltando...\n')
                 else:
-                    print('Escolha inválida')
+                    print('\nEscolha inválida\n')
             else:
-                print('Indice Invalido')
+                print('\nIndice Invalido\n')
     else:
-        print('Nenhum personagem criado.')
+        print('\nNenhum personagem criado.\n')
 
 def apagarPersonagem(conexao):
     qtdPersonagensBD = contarPersonagensBD(conexao)
     if qtdPersonagensBD > 0:
         listaBD = listar_personagens(conexao)
         try:
-            print(f'Quantidade de Personagens personalizados: {qtdPersonagensBD}')
+            print(f'\nQuantidade de Personagens personalizados: {qtdPersonagensBD}')
             indice = int(input('Digite o indice do personagem que deseja apagar:'))
         except ValueError:
             print('\nDigite apenas numeros inteiros\n')
@@ -436,17 +436,17 @@ def apagarPersonagem(conexao):
             if (indice >= 1 and indice <= len(listaBD)):
                 personagem = listaBD[indice - 1]
                 print(f'personagem escolhido: {personagem["nome"]}')
-                confirmacao = input('Confirme sua escolha (y/n): ').lower()
+                confirmacao = input('\nConfirme sua escolha (y/n): ').lower()
                 if (confirmacao == 'y'):
                     excluir_personagem(personagem["id_personagem"], conexao)
                 elif (confirmacao == 'n'):
-                    print('Voltando...')
+                    print('\nVoltando...\n')
                 else:
-                    print('Escolha inválida')
+                    print('\nEscolha inválida\n')
             else:
-                print('Indice Invalido')
+                print('\nIndice Invalido\n')
     else:
-        print('Nenhum personagem criado.')
+        print('\nNenhum personagem criado.\n')
 
 
 
