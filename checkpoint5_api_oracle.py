@@ -4,7 +4,6 @@ Busca os servants da API Atlas Academy (FGO, versão NA), mostra os escolhidos
 no menu e salva no Oracle somente esses personagens.
 """
 
-import getpass
 import random
 
 import oracledb
@@ -227,7 +226,7 @@ def main():
         return
 
     usuario = input("Usuário Oracle: ")
-    senha = getpass.getpass("Senha Oracle: ")
+    senha = input("Senha Oracle: ")
     try:
         conexao = oracledb.connect(user=usuario, password=senha, dsn=DSN)
     except oracledb.Error as erro:
